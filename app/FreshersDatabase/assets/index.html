@@ -25,6 +25,23 @@
 			    });
 			});
 
+			$('#fresherUpdateForm').live('submit', function (e) {
+				console.log("hitting fresherUpdateForm submit");
+			    //cache the form element for use in this function
+			    var $this = $(this);
+			
+			    //prevent the default submission of the form
+			    e.preventDefault();
+			    //run an AJAX post request to your server-side script, $this.serialize() is the data from your ` being added to the request
+			    $.post($this.attr('action'), $this.serialize(), function (responseData) {
+			    	
+					console.log("got responseData:" +  responseData);
+					$("#fresherUpdateStatus").text("Successfully added");
+					$("#fresherUpdateForm").hide();
+					//}
+			    });
+			});
+
 			//freshersearch
 
 			$( "#searchBtn" ).bind( "click", function(event, ui) {
@@ -54,6 +71,7 @@
 				     	}
 				     fTable = fTable + "</ul>";
 				     console.log("fTable:" + fTable);
+
 				     $("#fresherTable").html(fTable);
 				     
 				     $(".fresherDetails").bind( "click", function(event, ui) {
@@ -67,9 +85,16 @@
 				 },
 				});
 
-			});
-   		});
+   			});
 
+			$("#editFresherBtn").bind( "click", function(event, ui) {
+	 			var fId = $(this).attr("fId");
+		   		console.log("editFresherBtn clicked ;fId:" + fId);
+		   		editFresherDetails(fId);
+			});
+		});
+	       
+         
 	    function loadfresherDetails(fId){
 			console.log("load fresherDetails fId:" + fId);
 			var fUrl = "http://toprecur.com/freshersdb/fresher_details.php?id=" + fId;
@@ -80,6 +105,8 @@
 			   		console.log("fresher details response:" + rs);
 			
 					$("#fName").html(f.name);
+					$("#editFresherBtn").attr("fId", f.id);
+					$("#fresherUpdateId").attr("value",f.id);
 			   		$("#fAddress").html(f.address);
 			   		$("#fMobileno").html(f.mobile_no);
 			   		$("#fPlang").html(f.programming_lang);
@@ -100,7 +127,31 @@
 		     	console.log("Error");
 		 	  }
 		 	 });
-		
+		}
+
+		function editFresherDetails (fId){
+			console.log("edit fresherDetails fId:" + fId);
+			var fUrl = "http://toprecur.com/freshersdb/fresher_details.php?id=" + fId;
+			$.ajax({
+			   url: fUrl,
+			   dataType: 'json', // N.B! JSONP   It is lower Case OK?
+			   success:function(rs){
+			   		console.log("fresher details response:" + rs);
+					f = rs.data;
+					$("#fName1").val(f.name);
+			   		$("#fAddress1").val(f.address);
+			   		$("#fMobileno1").val(f.mobile_no);
+			   		$("#fPlang1").val(f.programming_lang);
+			   		$("#fPdet1").val(f.project_details);
+			   		$("#fDesc1").val(f.description);
+			   		$("#fEmailId1").val(f.email_id);
+			   		
+			   	    $.mobile.changePage("#fresherUpdatePage", null, true, true);
+			    },
+			    error:function(){
+		     	 console.log("Error");
+		 	    }
+		 	});
 		}
 
 
@@ -187,17 +238,17 @@
 		        </div>
 		    </div>
 		</div>
-		
-        <div id="fresherDetailsPage" data-role="page">
+		<div id="fresherDetailsPage" data-role="page">
             <div data-role="header">
               <h1>Fresher information</h1>
               <a href="#searchFresherPage" class="bbtnb" data-role="button" ><img src="images/leftarrow.png"/></a>
-             </div>
-             <div data-role="content">
-				 <table >
+            </div>
+            <div data-role="content">
+                 <button name="editFresherBtn" id="editFresherBtn" >Edit</button>
+                 <table >
 					<tr>
 						<td>Name:</td>
-						<td><div id="fName"></div></td>
+						<td><div  id="fName"></div></td>
 					</tr>
 					<tr>
 						<td>Decription:</td>
@@ -205,7 +256,7 @@
 					</tr>
 					<tr>
 						<td>Programming Languages:</td>
-						<td><div id="fPlang"></div></td>
+						<td><div   id="fPlang"></div></td>
 					</tr>
 					<tr>
 						<td>Project Details</td>
@@ -217,13 +268,60 @@
 					</tr>
 					<tr>
 						<td>Phone</td>
-						<td><a href="" id ="fMobileno" ></a></td>
+						<td><a href=""  data-role="text" id ="fMobileno" ></a></td>
 					</tr>
 					<tr>
 						<td>Address</td>
 						<td> <div id="fAddress"></div></td>
 					</tr>
 				</table>				
+			 </div>
+		</div>
+		
+        <div id="fresherUpdatePage" data-role="page">
+            <div data-role="header">
+               	<a href="#searchFresherPage" class="bbtnb" data-role="button" ><img src="images/leftarrow.png"/></a>
+              	<h1>Fresher update information</h1>
+            </div>
+            <div data-role="content">
+            	<div id="fresherUpdateStatus">
+            	</div>
+                <form id ="fresherUpdateForm"data-ajax="false" method="post" 
+				      action="http://toprecur.com/freshersdb/fresher_update.php">
+				    <input type="hidden" id="fresherUpdateId" name="id" ></input>
+	                <table >
+						<tr>
+							<td>Name:</td>
+							<td><input type="text" id="fName1"  name="name" /></td>
+						</tr>
+						<tr>
+							<td>Decription:</td>
+							<td><input type="text" id="fDesc1" name="description"  /></td>
+						</tr>
+						<tr>
+							<td>Programming Languages:</td>
+							<td><input type="text" id="fPlang1" name="programming_lang"/></td>
+						</tr>
+						<tr>
+							<td>Project Details</td>
+							<td><input type="text" id="fPdet1" name="project_details" /></td>
+						</tr>
+						<tr>
+							<td>Email</td>
+							<td> <input type="text" id="fEmailId1" name="email_id" /></td>
+						</tr>
+						<tr>
+							<td>Phone</td>
+							<td> <input type="text" id ="fMobileno1" name="mobile_no" /></a></td>
+						</tr>
+						<tr>
+							<td>Address</td>
+							<td> <input type="text" id="fAddress1" name="address"/></td>
+						</tr>
+					</table>
+					<input type="submit" id="update" name="update" value="update"/>		
+			    </form>
+						
 			 </div>
 		</div>
 	</body>
